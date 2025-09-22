@@ -1,11 +1,25 @@
-import React from "react";
+import React, { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import { Camera, Mail, User } from "lucide-react";
 
 const ProfilePage = () => {
   const { authuser, isUpdatingProfile, updateProfile } = useAuthStore();
+  const [selectedImage, setSelectedImage] = useState(null)
 
-  const handleImageUpload = async (e) => {};
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+
+    reader.readAsDataURL(file)
+    reader.onload = async ()=>{
+      const base64Image = reader.result;
+      setSelectedImage(base64Image);
+      await updateProfile({profilePic: base64Image})
+    }
+  };
+
   return (
     <div className="pt-20 h-screen">
       <div className="max-w-2xl bg-black mx-auto p-4 py-8">
@@ -18,7 +32,7 @@ const ProfilePage = () => {
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
             <img
-              src={authuser.profilePic || authuser.profilePic || "/vite.svg"}
+              src={ selectedImage ||authuser.profilePic || authuser.profilePic || "/vite.svg"}
               alt="Profile"
               className="size-32 rounded-full object-cover border-4 "
             />
@@ -60,7 +74,7 @@ const ProfilePage = () => {
               Full name
             </div>
             <p className="px-4 py-2.5 bg-base-200 rounded-lg border">
-              {authuser.fullName}
+              {authuser?.fullName || "Name"}
             </p>
           </div>
 
@@ -70,10 +84,23 @@ const ProfilePage = () => {
               Email
             </div>
             <p className="px-4 py-2.5 bg-base-200 rounded-lg border">
-              {authuser.email}
+              {authuser?.email}
             </p>
           </div>
 
+          <div className="mt-6 bg-base-300 rounded-xl p-6">
+            <h2 className="text-lg font-medium  mb-4">Account Information</h2>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center justify-between py-2 border-b border-zinc-700">
+                <span>Member Since</span>
+                <span>{authuser.createdAt?.split("T")[0]}</span>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <span>Account Status</span>
+                <span className="text-green-500">Active</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
